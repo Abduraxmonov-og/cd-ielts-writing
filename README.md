@@ -1,5 +1,3 @@
-# cd-ielts-writing
-
 # IELTS Writing Practice App
 
 ## File structure
