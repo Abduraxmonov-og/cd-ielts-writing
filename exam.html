@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IELTS Writing — Exam</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+    }
+
+    .logo-mark {
+      width: 26px; height: 26px;
+      background: var(--accent);
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: #fff;
+    }
+
+    /* ── Timer ── */
+    .timer-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .timer-display {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: 0.04em;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .timer-display.warning { color: var(--amber); }
+    .timer-display.danger { color: var(--red); }
+
+    .btn-start {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 16px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      background: var(--green);
+      color: #0e0f13;
+      letter-spacing: 0.04em;
+      transition: all 0.15s;
+    }
+    .btn-start:hover { opacity: 0.85; }
+    .btn-start:disabled { background: var(--surface-2); color: var(--text-muted); cursor: not-allowed; border: 1px solid var(--border); }
+
+    /* ── Candidate info ── */
+    .candidate-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .exam-mode-badge {
+      background: var(--red-dim);
+      color: var(--red);
+      border: 1px solid rgba(249,107,107,0.2);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Main writing workspace ── */
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Left: question panel ── */
+    .question-panel {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .panel-header {
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .panel-type-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(79,156,249,0.2);
+      padding: 3px 9px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .question-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    /* Custom upload zone */
+    .upload-zone {
+      border: 1px dashed var(--border-light);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      background: var(--surface-2);
+      display: none;
+    }
+
+    .upload-zone.visible { display: block; }
+
+    .upload-zone label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .upload-zone input[type="file"] {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .question-image {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .question-text {
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text-secondary);
+      white-space: pre-line;
+    }
+
+    .question-text[contenteditable="true"] {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      min-height: 80px;
+      outline: none;
+    }
+
+    .question-text[contenteditable="true"]:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── Right: writing area ── */
+    .writing-panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .writing-area {
+      flex: 1;
+      padding: 24px;
+      font-size: 15px;
+      line-height: 1.8;
+      font-family: var(--font-ui);
+      color: var(--text-primary);
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      caret-color: var(--accent);
+    }
+
+    .writing-area::placeholder { color: var(--text-muted); }
+    .writing-area:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Footer ── */
+    footer {
+      height: 48px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+
+    .task-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .task-tab {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .task-tab.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .word-counter {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .word-counter .count {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .word-counter .count.below { color: var(--red); }
+    .word-counter .count.ok { color: var(--green); }
+
+    .word-min-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ── Times up overlay ── */
+    .times-up-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      gap: 16px;
+      display: none;
+    }
+
+    .times-up-overlay.show { display: flex; }
+
+    .times-up-title {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--red);
+      font-family: var(--font-mono);
+      letter-spacing: -0.02em;
+    }
+
+    .times-up-sub {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* ── Fullscreen prompt ── */
+    .fullscreen-bar {
+      background: var(--amber-dim);
+      border-bottom: 1px solid rgba(249,180,79,0.2);
+      padding: 8px 24px;
+      font-size: 12px;
+      color: var(--amber);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .fullscreen-bar.hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen prompt -->
+  <div class="fullscreen-bar" id="fullscreen-bar">
+    <span>⛶ For the best exam experience, go fullscreen.</span>
+    <button class="btn btn-ghost" style="font-size:11px;padding:4px 12px;" onclick="goFullscreen()">Go Fullscreen</button>
+  </div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-mark">W</div>
+      IELTS Writing
+    </div>
+
+    <div class="timer-group">
+      <button class="btn-start" id="start-btn" onclick="startTimer()">START TEST</button>
+      <div class="timer-display" id="timer-display">60:00</div>
+    </div>
+
+    <div class="candidate-info">
+      <span id="exam-mode-badge" style="display:none" class="exam-mode-badge">Exam Mode</span>
+      <span id="candidate-id-display">—</span>
+    </div>
+  </header>
+
+  <!-- Writing workspace -->
+  <main>
+
+    <!-- Question panel -->
+    <section class="question-panel">
+      <div class="panel-header">
+        <span class="panel-label" id="panel-task-label">Writing Task 1</span>
+        <span class="panel-type-badge" id="panel-type-badge">—</span>
+      </div>
+      <div class="question-body">
+
+        <!-- Custom upload (only visible on custom task) -->
+        <div class="upload-zone" id="upload-zone">
+          <label>Upload question image (optional)</label>
+          <input type="file" accept="image/*" id="image-input" onchange="previewUploadedImage(event)">
+        </div>
+
+        <!-- Image display -->
+        <img class="question-image" id="question-image" alt="Task visual">
+
+        <!-- Question text -->
+        <div class="question-text" id="question-text" contenteditable="false"></div>
+
+      </div>
+    </section>
+
+    <!-- Writing area -->
+    <section class="writing-panel">
+      <textarea
+        id="writing-area"
+        class="writing-area"
+        placeholder="Start typing your response here…"
+        spellcheck="false"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        disabled
+      ></textarea>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="task-tabs">
+      <button class="task-tab active" id="tab-task1" onclick="switchTask(1)">Task 1</button>
+      <button class="task-tab" id="tab-task2" onclick="switchTask(2)">Task 2</button>
+    </div>
+    <div class="footer-right">
+      <div class="word-counter">
+        Words: <span class="count" id="word-count">0</span>
+        <span class="word-min-label" id="word-min-label">/ min 150</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Time's up overlay -->
+  <div class="times-up-overlay" id="times-up">
+    <div class="times-up-title">TIME'S UP</div>
+    <div class="times-up-sub">Your time has ended. Your responses have been recorded.</div>
+    <button class="btn btn-ghost" onclick="window.close()">Close</button>
+  </div>
+
+  <script src="exam.js"></script>
+</body>
+</html>
